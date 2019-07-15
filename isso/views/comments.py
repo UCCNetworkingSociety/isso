@@ -20,8 +20,10 @@ from werkzeug.wrappers import Response
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 
 from isso.compat import text_type as str
-
+from werkzeug.local import LocalManager
 from isso import utils, local
+local_manager = LocalManager([local])
+
 from isso.utils import (http, parse,
                         JSONResponse as JSON, XMLResponse as XML,
                         render_template)

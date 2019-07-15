@@ -1,7 +1,7 @@
-from preferences import Preferences
-from comments import Comments
-from spam import Guard
-from threads import Threads
+from .preferences import Preferences
+from .comments import Comments
+from .spam import Guard
+from .threads import Threads
 import pymysql
 import sqlite3
 import logging
@@ -162,6 +162,7 @@ class MySQL:
     def execute(self, sql, args=()):
         if isinstance(sql, (list, tuple)):
             sql = ' '.join(sql)
+        sql = sql.replace("?", "%s")
         for i in range(len(args)):
             if isinstance(args[i], memoryview):
                 args = list(args)

@@ -1,7 +1,6 @@
 from __future__ import print_function, unicode_literals
 
-import pkg_resources
-dist = pkg_resources.get_distribution("isso")
+from isso import dist
 
 # check if exectuable is `isso` and gevent is available
 import sys
@@ -31,12 +30,12 @@ from werkzeug.routing import Map
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 from werkzeug.wsgi import SharedDataMiddleware
-from werkzeug.local import Local, LocalManager
+from werkzeug.local import LocalManager
 from werkzeug.serving import run_simple
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
-local = Local()
+from isso import local
 local_manager = LocalManager([local])
 
 from isso import config, db, migrate, wsgi, ext, views

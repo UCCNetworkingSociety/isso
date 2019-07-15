@@ -24,10 +24,16 @@
 # THE SOFTWARE.
 #
 # Isso – a lightweight Disqus alternative
+import pkg_resources
+dist = pkg_resources.get_distribution("isso")
+from werkzeug.local import Local
+local = Local()
 from .main import Isso, make_app, main
 
 __all__ = [
     "Isso",
     "make_app",
-    "main"
+    "main",
+    "dist",
+    "local",
 ]
