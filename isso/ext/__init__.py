@@ -1,4 +1,6 @@
 # -*- encoding: utf-8 -*-
+from .signal import Signal
 
-from collections import defaultdict
-from signal import Signal
+__all__ = [
+    "Signal"
+]

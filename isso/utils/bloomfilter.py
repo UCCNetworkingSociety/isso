@@ -1,3 +1,6 @@
+import hashlib
+
+
 class Bloomfilter:
     """A space-efficient probabilistic data structure. False-positive rate:
 

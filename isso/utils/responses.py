@@ -1,3 +1,7 @@
+import json
+from werkzeug.wrappers import Response
+
+
 class JSONResponse(Response):
 
     def __init__(self, obj, *args, **kwargs):

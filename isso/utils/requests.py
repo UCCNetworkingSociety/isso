@@ -1,3 +1,10 @@
+import pkg_resources
+werkzeug = pkg_resources.get_distribution("werkzeug")
+import json
+from werkzeug.exceptions import BadRequest
+from isso.wsgi import Request
+
+
 class JSONRequest(Request):
 
     if werkzeug.version.startswith("0.8"):

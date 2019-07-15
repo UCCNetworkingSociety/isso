@@ -205,21 +205,21 @@ class Comments:
     def _remove_stale(self):
 
         removesql = ('SELECT id FROM',
-               '    comments',
-               'WHERE',
-               '    mode=4 AND id NOT IN (',
-               '        SELECT',
-               '            parent',
-               '        FROM',
-               '            comments',
-               '        WHERE parent IS NOT NULL)')
+                     '    comments',
+                     'WHERE',
+                     '    mode=4 AND id NOT IN (',
+                     '        SELECT',
+                     '            parent',
+                     '        FROM',
+                     '            comments',
+                     '        WHERE parent IS NOT NULL)')
         removing = self.db.execute(removesql).fetchall()
         while len(removing) > 0:
             for i in removing:
                 sql = ('DELETE FROM',
-                    '    comments',
-                    'WHERE',
-                    '    id = ?')
+                       '    comments',
+                       'WHERE',
+                       '    id = ?')
                 self.db.execute(sql, i[1])
             removing = self.db.execute(removesql).fetchall()
 

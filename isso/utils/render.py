@@ -1,3 +1,9 @@
+from werkzeug.wrappers import Response
+from datetime import datetime
+from jinja2 import Environment, FileSystemLoader
+import os
+
+
 def render_template(template_name, **context):
     template_path = os.path.join(os.path.dirname(__file__),
                                  '..', 'templates')

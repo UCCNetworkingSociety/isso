@@ -24,54 +24,10 @@
 # THE SOFTWARE.
 #
 # Isso – a lightweight Disqus alternative
+from .main import Isso, make_app, main
 
-from __future__ import print_function, unicode_literals
-
-import pkg_resources
-dist = pkg_resources.get_distribution("isso")
-
-# check if exectuable is `isso` and gevent is available
-import sys
-
-if sys.argv[0].startswith("isso"):
-    try:
-        import gevent.monkey
-        gevent.monkey.patch_all()
-    except ImportError:
-        pass
-
-import os
-import errno
-import logging
-import tempfile
-
-from os.path import dirname, join
-from argparse import ArgumentParser
-from functools import partial, reduce
-
-import pkg_resources
-werkzeug = pkg_resources.get_distribution("werkzeug")
-
-from itsdangerous import URLSafeTimedSerializer
-
-from werkzeug.routing import Map
-from werkzeug.exceptions import HTTPException, InternalServerError
-
-from werkzeug.wsgi import SharedDataMiddleware
-from werkzeug.local import Local, LocalManager
-from werkzeug.serving import run_simple
-from werkzeug.contrib.fixers import ProxyFix
-from werkzeug.contrib.profiler import ProfilerMiddleware
-
-local = Local()
-local_manager = LocalManager([local])
-
-from isso import config, db, migrate, wsgi, ext, views
-from isso.core import ThreadedMixin, ProcessMixin, uWSGIMixin
-from isso.wsgi import origin, urlsplit
-from isso.utils import http, JSONRequest, html, hash
-from isso.views import comments
-
-from isso.ext.notifications import Stdout, SMTP
-
-from main import Isso, make_app, main
+__all__ = [
+    "Isso",
+    "make_app",
+    "main"
+]

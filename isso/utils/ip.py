@@ -1,3 +1,10 @@
+from isso.compat import text_type
+try:
+    import ipaddress
+except ImportError:
+    import ipaddr as ipaddress
+
+
 def anonymize(remote_addr):
     """
     Anonymize IPv4 and IPv6 :param remote_addr: to /24 (zero'd)
