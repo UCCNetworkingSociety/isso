@@ -5,6 +5,8 @@ import logging
 import operator
 import os.path
 
+import pymysql
+
 from collections import defaultdict
 
 logger = logging.getLogger("isso")
@@ -123,3 +125,56 @@ class SQLite3:
 
                 con.execute('PRAGMA user_version = 3')
                 logger.info("%i rows changed", con.total_changes)
+
+
+class MySQL:
+    """DB-dependend wrapper around MySQL.
+    """
+
+    def __init__(self, conf):
+        self.conf = conf
+        self.host = self.conf.get("mysql", "host")
+        self.user = self.conf.get("mysql", "user")
+        self.pwd = self.conf.get("mysql", "pwd")
+        self.db = self.conf.get("mysql", "db")
+
+        connection = pymysql.connect(self.host, self.user, self.pwd)
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SHOW DATABASES;")
+        dbexists = False
+        for database in cursor.fetchall():
+            if database["Database"] == self.db:
+                dbexists = True
+                break
+        if not dbexists:
+            cursor.execute("CREATE DATABASE %s;" % (self.db,))
+            connection.commit()
+        cursor.close()
+        connection.close()
+
+        self.preferences = Preferences(self)
+        self.threads = Threads(self)
+        self.comments = Comments(self)
+        self.guard = Guard(self)
+        # self.execute("DROP TRIGGER IF EXISTS remove_stale_threads")
+        # self.execute([
+        #     'CREATE TRIGGER remove_stale_threads',
+        #     'AFTER DELETE ON comments FOR EACH ROW',
+        #     'BEGIN',
+        #     '    DELETE FROM threads WHERE id NOT IN (SELECT tid FROM comments);',
+        #     'END'])
+
+    def execute(self, sql, args=()):
+        if isinstance(sql, (list, tuple)):
+            sql = ' '.join(sql)
+        for i in range(len(args)):
+            if isinstance(args[i], memoryview):
+                args = list(args)
+                args[i] = args[i].tobytes()
+                args = tuple(args)
+
+        connection = pymysql.connect(self.host, self.user, self.pwd, self.db)
+        cursor = connection.cursor(pymysql.cursors.Cursor)
+        cursor.execute(sql, args)
+        connection.commit()
+        return cursor

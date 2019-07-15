@@ -30,15 +30,11 @@ class Comments:
         self.db = db
         self.db.execute([
             'CREATE TABLE IF NOT EXISTS comments (',
-            '    tid REFERENCES threads(id), id INTEGER PRIMARY KEY, parent INTEGER,',
-            '    created FLOAT NOT NULL, modified FLOAT, mode INTEGER, remote_addr VARCHAR,',
-            '    text VARCHAR, author VARCHAR, email VARCHAR, website VARCHAR,',
+            '    tid INTEGER, id INTEGER PRIMARY KEY AUTO_INCREMENT, parent INTEGER,',
+            '    created FLOAT NOT NULL, modified FLOAT, mode INTEGER, remote_addr VARCHAR(256),',
+            '    text TEXT, author TEXT, email TEXT, website TEXT,',
             '    likes INTEGER DEFAULT 0, dislikes INTEGER DEFAULT 0, voters BLOB NOT NULL,',
-            '    notification INTEGER DEFAULT 0);'])
-        try:
-            self.db.execute(['ALTER TABLE comments ADD COLUMN notification INTEGER DEFAULT 0;'])
-        except Exception:
-            pass
+            '    notification INTEGER DEFAULT 0, FOREIGN KEY (tid) REFERENCES threads(id));'])
 
     def add(self, uri, c):
         """
@@ -69,7 +65,7 @@ class Comments:
         )
 
         return dict(zip(Comments.fields, self.db.execute(
-            'SELECT *, MAX(c.id) FROM comments AS c INNER JOIN threads ON threads.uri = ?',
+            'SELECT * FROM comments AS c INNER JOIN threads ON threads.uri = ? AND c.id = (SELECT MAX(c.id) FROM comments as c);',
             (uri, )).fetchone()))
 
     def activate(self, id):
@@ -208,7 +204,7 @@ class Comments:
 
     def _remove_stale(self):
 
-        sql = ('DELETE FROM',
+        removesql = ('SELECT id FROM',
                '    comments',
                'WHERE',
                '    mode=4 AND id NOT IN (',
@@ -217,9 +213,15 @@ class Comments:
                '        FROM',
                '            comments',
                '        WHERE parent IS NOT NULL)')
-
-        while self.db.execute(sql).rowcount:
-            continue
+        removing = self.db.execute(removesql).fetchall()
+        while len(removing) > 0:
+            for i in removing:
+                sql = ('DELETE FROM',
+                    '    comments',
+                    'WHERE',
+                    '    id = ?')
+                self.db.execute(sql, i[1])
+            removing = self.db.execute(removesql).fetchall()
 
     def delete(self, id):
         """
@@ -288,7 +290,7 @@ class Comments:
         sql = ['SELECT comments.parent,count(*)',
                'FROM comments INNER JOIN threads ON',
                '   threads.uri=? AND comments.tid=threads.id AND',
-               '   (? | comments.mode = ?) AND',
+               '   (? OR comments.mode = ?) AND',
                '   comments.created > ?',
                'GROUP BY comments.parent']
 

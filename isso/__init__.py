@@ -82,12 +82,23 @@ logging.basicConfig(
 logger = logging.getLogger("isso")
 
 
+class InvalidDBType(Exception):
+    pass
+
+
 class Isso(object):
 
     def __init__(self, conf):
 
         self.conf = conf
-        self.db = db.SQLite3(conf.get('general', 'dbpath'), conf)
+        self.dbtype = conf.get("general", "dbtype")
+        if self.dbtype == "sqlite":
+            self.db = db.SQLite3(conf.get('general', 'dbpath'), conf)
+        elif self.dbtype == "mysql":
+            self.db = db.MySQL(conf)
+        else:
+            logger.exception("Invalid dbtype %s" % (self.dbtype))
+            raise InvalidDBType()
         self.signer = URLSafeTimedSerializer(
             self.db.preferences.get("session-key"))
         self.markup = html.Markup(conf.section('markup'))
@@ -183,30 +194,23 @@ def make_app(conf=None, threading=True, multiprocessing=False, uwsgi=False):
         logger.warn("unable to connect to your website, Isso will probably not "
                     "work correctly. Please make sure, Isso can reach your "
                     "website via HTTP(S).")
-
     wrapper = [local_manager.make_middleware]
-
     if isso.conf.getboolean("server", "profile"):
         wrapper.append(partial(ProfilerMiddleware,
                                sort_by=("cumulative", ), restrictions=("isso/(?!lib)", 10)))
-
     wrapper.append(partial(SharedDataMiddleware, exports={
         '/js': join(dirname(__file__), 'js/'),
         '/css': join(dirname(__file__), 'css/'),
         '/img': join(dirname(__file__), 'img/'),
         '/demo': join(dirname(__file__), 'demo/')
     }))
-
     wrapper.append(partial(wsgi.CORSMiddleware,
                            origin=origin(isso.conf.getiter("general", "host")),
                            allowed=("Origin", "Referer", "Content-Type"),
                            exposed=("X-Set-Cookie", "Date")))
-
     wrapper.extend([wsgi.SubURI, ProxyFix])
-
     if werkzeug.version.startswith("0.8"):
         wrapper.append(wsgi.LegacyWerkzeugMiddleware)
-
     return reduce(lambda x, f: f(x), wrapper, isso)
 
 

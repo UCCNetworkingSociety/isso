@@ -15,7 +15,7 @@ class Preferences:
         self.db = db
         self.db.execute([
             'CREATE TABLE IF NOT EXISTS preferences (',
-            '   key VARCHAR PRIMARY KEY, value VARCHAR',
+            '   name VARCHAR(256) PRIMARY KEY, value VARCHAR(256)',
             ');'])
 
         for (key, value) in Preferences.defaults:
@@ -24,7 +24,7 @@ class Preferences:
 
     def get(self, key, default=None):
         rv = self.db.execute(
-            'SELECT value FROM preferences WHERE key=?', (key, )).fetchone()
+            'SELECT value FROM preferences WHERE name=?', (key, )).fetchone()
 
         if rv is None:
             return default
@@ -33,4 +33,4 @@ class Preferences:
 
     def set(self, key, value):
         self.db.execute(
-            'INSERT INTO preferences (key, value) VALUES (?, ?)', (key, value))
+            'INSERT INTO preferences (name, value) VALUES (?, ?)', (key, value))
